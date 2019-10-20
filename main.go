@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"net/http"
 	_ "net/http"
 	"strconv"
 
@@ -13,6 +15,11 @@ type Person struct {
 	gorm.Model
 	Name string
 	Age  int
+}
+
+type Login struct {
+	User     string `form:"user" json:"user" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
 }
 
 func db_init() {
@@ -56,6 +63,23 @@ func main() {
 		name := c.PostForm("name")
 		age, _ := strconv.Atoi(c.PostForm("age"))
 		create(name, age)
+		c.Redirect(302, "/")
+	})
+
+	// Login
+	r.POST("/login", func(c *gin.Context) {
+		var json Login
+		if err := c.ShouldBindJSON(&json); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if json.User != "manu" || json.Password != "hoge" {
+			fmt.Printf("Authorization is succeeded")
+			c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
+			return
+		}
+
 		c.Redirect(302, "/")
 	})
 	r.Run()
