@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
 	_ "net/http"
 	"strconv"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -67,20 +68,36 @@ func main() {
 	})
 
 	// Login
-	r.POST("/login", func(c *gin.Context) {
-		var json Login
-		if err := c.ShouldBindJSON(&json); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("mysession", store))
 
-		if json.User != "manu" || json.Password != "hoge" {
-			fmt.Printf("Authorization is succeeded")
-			c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
-			return
+	r.GET("/login", func(c *gin.Context) {
+		session := sessions.Default(c)
+		var count int
+		v := session.Get("count")
+		if v == nil {
+			count = 0
+		} else {
+			count = v.(int)
+			count++
+		}
+		session.Set("count", count)
+		session.Save()
+		c.HTML(200, "login.tmpl", gin.H{
+			"count": count,
+		})
+	})
+	r.POST("/login", func(c *gin.Context) {
+
+		userName := c.PostForm("userName")
+		password := c.PostForm("password")
+
+		if userName != "manu" || password != "hoge" {
+			c.Redirect(302, "/login")
 		}
 
 		c.Redirect(302, "/")
 	})
+
 	r.Run()
 }
