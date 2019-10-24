@@ -2,7 +2,7 @@ package main
 
 type MeetingRoom struct {
 	RoomId   int
-	RoonName string
+	RoomName string
 
 	// setter, getter は必要になったら実装
 }

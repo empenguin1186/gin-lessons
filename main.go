@@ -2,10 +2,6 @@ package main
 
 import (
 	_ "net/http"
-	"strconv"
-
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -50,54 +46,64 @@ func get_all() []Person {
 	return people
 }
 
-func main2() {
+func main() {
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
-	db_init()
-	r.GET("/", func(c *gin.Context) {
-		people := get_all()
-		c.HTML(200, "index.tmpl", gin.H{
-			"people": people,
+
+	var RoomService = NewRoomService(ReservableRoomRepositoryImpl{})
+	var RoomController = NewRoomController(RoomService)
+	r.GET("/rooms", func(c *gin.Context) {
+		var rooms = RoomController.ListRooms()
+		c.HTML(200, "listRooms.tmpl", gin.H{
+			"rooms": rooms,
 		})
 	})
-	r.POST("/new", func(c *gin.Context) {
-		name := c.PostForm("name")
-		age, _ := strconv.Atoi(c.PostForm("age"))
-		create(name, age)
-		c.Redirect(302, "/")
-	})
 
-	// Login
-	store := cookie.NewStore([]byte("secret"))
-	r.Use(sessions.Sessions("mysession", store))
+	// db_init()
+	// r.GET("/", func(c *gin.Context) {
+	// 	people := get_all()
+	// 	c.HTML(200, "index.tmpl", gin.H{
+	// 		"people": people,
+	// 	})
+	// })
+	// r.POST("/new", func(c *gin.Context) {
+	// 	name := c.PostForm("name")
+	// 	age, _ := strconv.Atoi(c.PostForm("age"))
+	// 	create(name, age)
+	// 	c.Redirect(302, "/")
+	// })
 
-	r.GET("/login", func(c *gin.Context) {
-		session := sessions.Default(c)
-		var count int
-		v := session.Get("count")
-		if v == nil {
-			count = 0
-		} else {
-			count = v.(int)
-			count++
-		}
-		session.Set("count", count)
-		session.Save()
-		c.HTML(200, "login.tmpl", gin.H{
-			"count": count,
-		})
-	})
-	r.POST("/login", func(c *gin.Context) {
+	// // Login
+	// store := cookie.NewStore([]byte("secret"))
+	// r.Use(sessions.Sessions("mysession", store))
 
-		userName := c.PostForm("userName")
-		password := c.PostForm("password")
+	// r.GET("/login", func(c *gin.Context) {
+	// 	session := sessions.Default(c)
+	// 	var count int
+	// 	v := session.Get("count")
+	// 	if v == nil {
+	// 		count = 0
+	// 	} else {
+	// 		count = v.(int)
+	// 		count++
+	// 	}
+	// 	session.Set("count", count)
+	// 	session.Save()
+	// 	c.HTML(200, "login.tmpl", gin.H{
+	// 		"count": count,
+	// 	})
+	// })
+	// r.POST("/login", func(c *gin.Context) {
 
-		if userName != "manu" || password != "hoge" {
-			c.Redirect(302, "/login")
-		}
+	// 	userName := c.PostForm("userName")
+	// 	password := c.PostForm("password")
 
-		c.Redirect(302, "/")
-	})
+	// 	if userName != "manu" || password != "hoge" {
+	// 		c.Redirect(302, "/login")
+	// 	}
+
+	// 	c.Redirect(302, "/")
+	// })
 
 	r.Run()
 }

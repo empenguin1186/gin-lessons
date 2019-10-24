@@ -2,10 +2,10 @@ package main
 
 import "fmt"
 
-func main() {
-	e := InitializeEvent()
-
-	e.Start()
+func main2() {
+	var RoomService = NewRoomService(ReservableRoomRepositoryImpl{})
+	var RoomController = NewRoomController(RoomService)
+	fmt.Printf(RoomController.ListRooms()[0].MeetingRoom.RoomName)
 }
 
 type Message string
