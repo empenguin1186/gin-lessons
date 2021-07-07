@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -13,6 +12,11 @@ type Person struct {
 	gorm.Model
 	Name string
 	Age  int
+}
+
+type Login struct {
+	User     string `form:"user" json:"user" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
 }
 
 func db_init() {
@@ -45,18 +49,61 @@ func get_all() []Person {
 func main() {
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
-	db_init()
-	r.GET("/", func(c *gin.Context) {
-		people := get_all()
-		c.HTML(200, "index.tmpl", gin.H{
-			"people": people,
+
+	var RoomService = NewRoomService(ReservableRoomRepositoryImpl{})
+	var RoomController = NewRoomController(RoomService)
+	r.GET("/rooms", func(c *gin.Context) {
+		var rooms = RoomController.ListRooms()
+		c.HTML(200, "listRooms.tmpl", gin.H{
+			"rooms": rooms,
 		})
 	})
-	r.POST("/new", func(c *gin.Context) {
-		name := c.PostForm("name")
-		age, _ := strconv.Atoi(c.PostForm("age"))
-		create(name, age)
-		c.Redirect(302, "/")
-	})
+
+	// db_init()
+	// r.GET("/", func(c *gin.Context) {
+	// 	people := get_all()
+	// 	c.HTML(200, "index.tmpl", gin.H{
+	// 		"people": people,
+	// 	})
+	// })
+	// r.POST("/new", func(c *gin.Context) {
+	// 	name := c.PostForm("name")
+	// 	age, _ := strconv.Atoi(c.PostForm("age"))
+	// 	create(name, age)
+	// 	c.Redirect(302, "/")
+	// })
+
+	// // Login
+	// store := cookie.NewStore([]byte("secret"))
+	// r.Use(sessions.Sessions("mysession", store))
+
+	// r.GET("/login", func(c *gin.Context) {
+	// 	session := sessions.Default(c)
+	// 	var count int
+	// 	v := session.Get("count")
+	// 	if v == nil {
+	// 		count = 0
+	// 	} else {
+	// 		count = v.(int)
+	// 		count++
+	// 	}
+	// 	session.Set("count", count)
+	// 	session.Save()
+	// 	c.HTML(200, "login.tmpl", gin.H{
+	// 		"count": count,
+	// 	})
+	// })
+	// r.POST("/login", func(c *gin.Context) {
+
+	// 	userName := c.PostForm("userName")
+	// 	password := c.PostForm("password")
+
+	// 	if userName != "manu" || password != "hoge" {
+	// 		c.Redirect(302, "/login")
+	// 	}
+
+	// 	c.Redirect(302, "/")
+	// })
+
 	r.Run()
 }

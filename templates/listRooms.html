@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8"/>
+    <title> 会議室 </title>
+</head>
+<body>
+<h3>会議室</h3>
+<ul>
+    {{ range .rooms }}
+        <li>{{.MeetingRoom.RoomName}}</li>
+    {{ end }}
+</ul>
+</body>
+</html>
